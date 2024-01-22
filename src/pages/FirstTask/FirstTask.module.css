@@ -1,0 +1,14 @@
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.question label {
+  width: fit-content;
+}
+
+.question button {
+  width: fit-content;
+  padding: 0.5rem 1rem;
+}

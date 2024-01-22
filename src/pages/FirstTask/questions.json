@@ -1,0 +1,112 @@
+[
+  {
+    "id": 0,
+    "question": "Первый вопрос",
+    "answers": [
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Верный вариант",
+        "isCorrect": true
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "question": "Второй вопрос",
+    "answers": [
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Верный вариант",
+        "isCorrect": true
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "question": "Третий вопрос",
+    "answers": [
+      {
+        "text": "Верный вариант",
+        "isCorrect": true
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "question": "Четвертый вопрос",
+    "answers": [
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Верный вариант",
+        "isCorrect": true
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": 0,
+    "question": "Пятый вопрос",
+    "answers": [
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Ошибка",
+        "isCorrect": false
+      },
+      {
+        "text": "Верный вариант",
+        "isCorrect": true
+      }
+    ]
+  }
+]
