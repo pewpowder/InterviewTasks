@@ -20,6 +20,14 @@ export default function ThirdTaskPage() {
     }
   }, [isTimerRunning, timeInSeconds, toggleTimer]);
 
+  const resetTime = () => {
+    setTime({
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    });
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.currentTarget.name;
     const value = Number(e.currentTarget.value);
@@ -35,14 +43,6 @@ export default function ThirdTaskPage() {
     }
 
     setTime({ ...time, [name]: Number(value) });
-  };
-
-  const resetTime = () => {
-    setTime({
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
-    });
   };
 
   const handleButtonClick = () => {

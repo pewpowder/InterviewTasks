@@ -49,10 +49,12 @@ export const validateField = (
   const key = match === null ? name : 'workPlaces';
 
   let error: string | FormFieldsErrors['workPlaces'] | null = null;
+  let isError = false;
   switch (key) {
     case 'fullName': {
       if (value.trim().split(' ').length < 3) {
         error = 'Поле ФИО должно содержать не менее 3-ех слов!';
+        isError = true;
       }
       break;
     }
@@ -61,11 +63,12 @@ export const validateField = (
 
       if (!reg.test(value)) {
         error = 'Введен не корректный формат почты!';
+        isError = true;
       }
       break;
     }
     case 'workPlaces': {
-      const workPlacesErrors = validateWorkPlaces({
+      const { isWorkPlacesError, workPlacesErrors } = validateWorkPlaces({
         name,
         value,
         formFields,
@@ -73,6 +76,7 @@ export const validateField = (
         match: match as RegExpMatchArray,
       });
 
+      isError = isWorkPlacesError;
       error = workPlacesErrors;
       break;
     }
@@ -85,7 +89,7 @@ export const validateField = (
   return {
     name: key,
     error,
-    isError: error !== null,
+    isError,
   };
 };
 
@@ -160,29 +164,38 @@ const validateWorkPlaces = (validateInfo: WorkPlaceValidateInfo) => {
   const workPlaceError = workPlacesErrors.find((wpe) => wpe.id === id);
 
   if (!workPlaceError && !error) {
-    return workPlacesErrors;
+    return {
+      isWorkPlacesError: false,
+      workPlacesErrors,
+    };
   }
 
   if (workPlaceError) {
-    return workPlacesErrors.map((wpe) => {
-      if (wpe.id === id) {
-        return {
-          ...wpe,
-          [key]: error,
-        };
-      }
-      return wpe;
-    });
+    return {
+      isWorkPlacesError: error !== null,
+      workPlacesErrors: workPlacesErrors.map((wpe) => {
+        if (wpe.id === id) {
+          return {
+            ...wpe,
+            [key]: error,
+          };
+        }
+        return wpe;
+      }),
+    };
   }
 
-  return [
-    ...workPlacesErrors,
-    {
-      id,
-      organization: null,
-      startYear: null,
-      endYear: null,
-      [key]: error,
-    },
-  ];
+  return {
+    isWorkPlacesError: error !== null,
+    workPlacesErrors: [
+      ...workPlacesErrors,
+      {
+        id,
+        organization: null,
+        startYear: null,
+        endYear: null,
+        [key]: error,
+      },
+    ],
+  };
 };

@@ -14,10 +14,10 @@ export interface FormFields {
 }
 
 export interface WorkPlaceError {
-  id: number,
-  organization: string | null,
-  startYear: string | null,
-  endYear: string | null,
+  id: number;
+  organization: string | null;
+  startYear: string | null;
+  endYear: string | null;
 }
 
 export interface FormFieldsErrors {

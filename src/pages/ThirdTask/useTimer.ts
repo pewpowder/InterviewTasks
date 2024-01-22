@@ -11,6 +11,11 @@ export function useTimer(time: Time): [number, boolean, () => void] {
     setTimeInSeconds(convertTimeInSeconds(time));
   }, [time]);
 
+  const toggleTimer = useCallback(() => {
+    isTimerRunning ? stopTimer() : startTimer();
+    setIsTimerRunning(!isTimerRunning);
+  }, [isTimerRunning]);
+
   const startTimer = () => {
     timerId.current = setInterval(() => {
       setTimeInSeconds((prevTimeInSeconds) => prevTimeInSeconds - 1);
@@ -21,11 +26,6 @@ export function useTimer(time: Time): [number, boolean, () => void] {
     timerId.current && clearInterval(timerId.current);
     setTimeInSeconds(0);
   };
-
-  const toggleTimer = useCallback(() => {
-    isTimerRunning ? stopTimer() : startTimer();
-    setIsTimerRunning(!isTimerRunning);
-  }, [isTimerRunning]);
 
   return [timeInSeconds, isTimerRunning, toggleTimer];
 }

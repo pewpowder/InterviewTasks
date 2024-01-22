@@ -66,12 +66,6 @@ export default function SecondTaskPage() {
     setFormFields({ ...formFields, workPlaces: newWorkPlaces });
   };
 
-  const resetForm = () => {
-    workPlacesIdCounter.current = 0;
-    setFormFields(getInitialFormFields());
-    setFormFieldsErrors(getInitialFormFieldsErrors());
-  };
-
   const handleInputBlur = (e: React.FocusEvent<HTMLInputElement, Element>) => {
     const { name, error } = validateField(
       e.currentTarget,
@@ -83,8 +77,8 @@ export default function SecondTaskPage() {
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    validateForm(e.currentTarget);
-    console.log(formFields);
+    const isError = validateForm(e.currentTarget);
+    !isError && console.log(formFields);
   };
 
   const validateForm = (target: EventTarget & HTMLFormElement) => {
@@ -112,9 +106,15 @@ export default function SecondTaskPage() {
 
     if (errorCounts !== 0) {
       setFormFieldsErrors(errors);
-    } else {
-      console.log(formFields);
     }
+
+    return errorCounts !== 0;
+  };
+
+  const resetForm = () => {
+    workPlacesIdCounter.current = 0;
+    setFormFields(getInitialFormFields());
+    setFormFieldsErrors(getInitialFormFieldsErrors());
   };
 
   const {

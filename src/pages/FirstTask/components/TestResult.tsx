@@ -14,7 +14,6 @@ function TestResult({
   const correctAnswers = Object.values(userAnswers).reduce((acc, value) => {
     return value ? acc + 1 : acc;
   }, 0);
-
   return (
     <div>
       <ul>
