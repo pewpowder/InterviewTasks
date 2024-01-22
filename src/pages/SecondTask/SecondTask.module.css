@@ -12,3 +12,12 @@
 .table > caption {
   text-align: start;
 }
+
+.input-error {
+  background-color: #d64b4b;
+}
+
+.text-error {
+  color: #d64b4b;
+  display: block;
+}

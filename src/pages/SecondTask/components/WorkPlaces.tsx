@@ -1,8 +1,9 @@
 import styles from '../SecondTask.module.css';
-import { FormFields } from '../types';
+import type { WorkPlace, WorkPlaceError } from '../types';
 
 interface WorkPlacesProps {
-  formFields: FormFields;
+  workPlaces: WorkPlace[];
+  workPlacesErrors: WorkPlaceError[];
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleInputBlur: (e: React.FocusEvent<HTMLInputElement, Element>) => void;
   removeWorkPlace: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -11,14 +12,16 @@ interface WorkPlacesProps {
 
 function WorkPlaces(props: WorkPlacesProps) {
   const {
-    formFields,
+    workPlaces,
+    workPlacesErrors,
     handleInputChange,
     removeWorkPlace,
     addWorkPlace,
     handleInputBlur,
   } = props;
+
   return (
-    <fieldset name='workPlaces'>
+    <div>
       <table className={styles['table']}>
         <caption>Список мест работы</caption>
         <thead>
@@ -29,36 +32,60 @@ function WorkPlaces(props: WorkPlacesProps) {
           </tr>
         </thead>
         <tbody>
-          {formFields.workPlaces.map((wp) => {
+          {workPlaces.map((wp) => {
             const { id, organization, startYear, endYear } = wp;
+            const workPlaceError = workPlacesErrors.find(
+              (wpe) => wpe.id === id
+            );
+            const organizationError = workPlaceError?.organization;
+            const startYearError = workPlaceError?.startYear;
+            const endYearError = workPlaceError?.endYear;
             return (
               <tr key={id}>
                 <td>
                   <input
+                    className={organizationError ? styles['input-error'] : ''}
                     type="text"
                     name={`organization[${id}]`}
                     value={organization ?? ''}
                     onChange={handleInputChange}
                     onBlur={handleInputBlur}
                   />
+                  {organizationError && (
+                    <span className={styles['text-error']}>
+                      {organizationError}
+                    </span>
+                  )}
                 </td>
                 <td>
                   <input
+                    className={startYearError ? styles['input-error'] : ''}
                     type="number"
                     name={`startYear[${id}]`}
                     value={startYear ?? ''}
                     onChange={handleInputChange}
                     onBlur={handleInputBlur}
                   />
+                  {startYearError && (
+                    <span className={styles['text-error']}>
+                      {startYearError}
+                    </span>
+                  )}
                 </td>
                 <td>
                   <input
+                    className={endYearError ? styles['input-error'] : ''}
                     type="number"
                     name={`endYear[${id}]`}
                     value={endYear ?? ''}
                     onChange={handleInputChange}
                     onBlur={handleInputBlur}
                   />
+                  {endYearError && (
+                    <span className={styles['text-error']}>
+                      {endYearError}
+                    </span>
+                  )}
                 </td>
                 <td>
                   <button
@@ -77,7 +104,7 @@ function WorkPlaces(props: WorkPlacesProps) {
       <button type="button" onClick={addWorkPlace}>
         Добавить
       </button>
-    </fieldset>
+    </div>
   );
 }
 

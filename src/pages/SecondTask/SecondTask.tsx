@@ -1,14 +1,10 @@
 import { useRef, useState } from 'react';
-import type {
-  WorkPlace,
-  FormFields,
-  FormFieldsErrors,
-} from './types';
+import type { WorkPlace, FormFields, FormFieldsErrors } from './types';
 import {
   getInitialFormFields,
   getInitialFormFieldsErrors,
-  isWorkPlaceErrorKey,
   isWorkPlaceKey,
+  validateField,
 } from './helpers';
 import styles from './SecondTask.module.css';
 import WorkPlaces from './components/WorkPlaces';
@@ -77,146 +73,55 @@ export default function SecondTaskPage() {
   };
 
   const handleInputBlur = (e: React.FocusEvent<HTMLInputElement, Element>) => {
+    const { name, error } = validateField(
+      e.currentTarget,
+      formFields,
+      formFieldsErrors
+    );
+    setFormFieldsErrors({ ...formFieldsErrors, [name]: error });
   };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    validateForm(e.currentTarget);
+    console.log(formFields);
   };
 
-  interface WorkPlaceValidateInfo {
-    name: string;
-    value: string;
-    formFields: FormFields;
-    match: RegExpMatchArray;
-  }
-
-  const validateWorkPlaces = (validateInfo: WorkPlaceValidateInfo) => {
-    const { name, value, formFields, match } = validateInfo;
-
-    const id = Number(match[0]);
-    const workPlace = formFields.workPlaces.find((wp) => wp.id === id);
-    const key = name.slice(0, name.indexOf('['));
-
-    let error: string | null = null;
-    switch (key) {
-      case 'organization': {
-        if (value === '') {
-          error = 'Поле не может быть пустым';
-        }
-        break;
+  const validateForm = (target: EventTarget & HTMLFormElement) => {
+    const elements = target.elements;
+    let errors: FormFieldsErrors = JSON.parse(JSON.stringify(formFieldsErrors));
+    let errorCounts = 0;
+    for (let i = 0; i < elements.length; i++) {
+      const element = target[i];
+      if (element.nodeName !== 'INPUT') {
+        continue;
       }
-      case 'startYear': {
-        const yearOfBirth = formFields.dateOfBirth;
-        const year = Number(value);
-        const minYear = Number(yearOfBirth) + 18;
-        const maxYear = new Date().getFullYear();
-
-        if (yearOfBirth === null) {
-          error = 'Пожалуйста, заполните сперва поле "Дата рождения"';
-        }
-
-        if (year < minYear || year > maxYear) {
-          error = `Поле не может быть больше ${maxYear} и меньше ${minYear}`;
-        }
-
-        break;
-      }
-      case 'endYear': {
-        const year = Number(value);
-        const minYear = workPlace && workPlace.startYear;
-        const maxYear = new Date().getFullYear();
-
-        if (!minYear) {
-          error = 'Пожалуйста, заполните сперва поле "Год начала работы"';
-        }
-
-        if (minYear && (year < minYear || year > maxYear)) {
-          error = `Поле не может быть меньше ${minYear} и больше ${maxYear}`;
-        }
-
-        break;
-      }
-      default: {
-        console.log("Workplace with such id doesn't exist");
-        break;
+      const { name, error, isError } = validateField(
+        element as HTMLInputElement,
+        formFields,
+        errors
+      );
+      if (isError) {
+        errors = {
+          ...errors,
+          [name]: error,
+        };
+        errorCounts++;
       }
     }
 
-    if (formFieldsErrors.workPlaces.length === 0 && error) {
-      return [
-        {
-          id,
-          organization: '',
-          startYear: '',
-          endYear: '',
-          [key]: error,
-        },
-      ];
-    }
-
-    if (error) {
-      return formFieldsErrors.workPlaces.map((wp) => {
-        if (wp.id === id && isWorkPlaceErrorKey(wp, key)) {
-          return { ...wp, [key]: error };
-        }
-
-        return wp;
-      });
+    if (errorCounts !== 0) {
+      setFormFieldsErrors(errors);
     } else {
-      return formFieldsErrors.workPlaces.filter(wp => {
-        if(wp.id === id) {
-
-        }
-      })
+      console.log(formFields);
     }
-
-    return formFieldsErrors.workPlaces;
   };
 
-  const validateField = (target: EventTarget & HTMLInputElement) => {
-    const { name, value } = target;
-    const match = name.match(/\d+/);
-    const key = match === null ? name : 'workPlaces';
-
-    let error: string | FormFieldsErrors['workPlaces'] | null = null;
-    switch (key) {
-      case 'fullName': {
-        if (value.trim().split(' ').length < 3) {
-          error = 'Поле ФИО должно содержать не менее 3-ех слов!';
-        }
-        break;
-      }
-      case 'email': {
-        const reg = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
-
-        if (!reg.test(value)) {
-          error = 'Введен не корректный формат почты!';
-        }
-        break;
-      }
-      case 'workPlaces': {
-        const workPlacesErrors = validateWorkPlaces({
-          name,
-          value,
-          formFields,
-          match: match as RegExpMatchArray,
-        });
-
-        error = workPlacesErrors;
-        break;
-      }
-      default: {
-        console.log(`This error key doesn't exist ${key}`);
-        break;
-      }
-    }
-
-    return {
-      name: key,
-      error,
-    };
-  };
-
+  const {
+    fullName: fullNameError,
+    email: emailError,
+    workPlaces: workPlacesErrors,
+  } = formFieldsErrors;
 
   return (
     <form
@@ -227,12 +132,16 @@ export default function SecondTaskPage() {
       <label>
         Полное имя
         <input
+          className={fullNameError ? styles['input-error'] : ''}
           type="text"
           name="fullName"
           value={formFields['fullName'] ?? ''}
           onChange={handleInputChange}
           onBlur={handleInputBlur}
         />
+        {fullNameError && (
+          <span className={styles['text-error']}>{fullNameError}</span>
+        )}
       </label>
       <div>
         <label>
@@ -271,19 +180,24 @@ export default function SecondTaskPage() {
       <label>
         Почта
         <input
+          className={emailError ? styles['input-error'] : ''}
           type="email"
           name="email"
           value={formFields['email'] ?? ''}
           onChange={handleInputChange}
           onBlur={handleInputBlur}
         />
+        {emailError && (
+          <span className={styles['text-error']}>{emailError}</span>
+        )}
       </label>
       <WorkPlaces
-        formFields={formFields}
+        workPlaces={formFields.workPlaces}
         handleInputChange={handleInputChange}
         addWorkPlace={addWorkPlace}
         removeWorkPlace={removeWorkPlace}
         handleInputBlur={handleInputBlur}
+        workPlacesErrors={workPlacesErrors}
       />
       <div>
         <button type="reset" onClick={resetForm}>
