@@ -85,6 +85,7 @@ export default function SecondTaskPage() {
     const elements = target.elements;
     let errors: FormFieldsErrors = JSON.parse(JSON.stringify(formFieldsErrors));
     let errorCounts = 0;
+
     for (let i = 0; i < elements.length; i++) {
       const element = target[i];
       if (element.nodeName !== 'INPUT') {
@@ -104,11 +105,10 @@ export default function SecondTaskPage() {
       }
     }
 
-    if (errorCounts !== 0) {
-      setFormFieldsErrors(errors);
-    }
+    const isValidationError = errorCounts !== 0;
+    isValidationError && setFormFieldsErrors(errors);
 
-    return errorCounts !== 0;
+    return isValidationError;
   };
 
   const resetForm = () => {

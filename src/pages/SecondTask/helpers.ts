@@ -39,6 +39,157 @@ export const getInitialFormFieldsErrors = (): FormFieldsErrors => {
   };
 };
 
+interface WorkPlaceValidateInfo {
+  name: string;
+  value: string;
+  formFields: FormFields;
+  workPlacesErrors: WorkPlaceError[];
+  match: RegExpMatchArray;
+}
+
+type ValidationError = string | null;
+
+const validateStartYear = (
+  value: string,
+  dateOfBirth: string | null
+): ValidationError => {
+  if (dateOfBirth === null) {
+    return 'Пожалуйста, заполните сперва поле "Дата рождения"';
+  }
+
+  const yearOfBirth = new Date(dateOfBirth).getFullYear();
+  const year = Number(value);
+  const minYear = Number(yearOfBirth) + 18;
+  const maxYear = new Date().getFullYear();
+
+  if (year < minYear || year > maxYear) {
+    return `Поле не может быть больше ${maxYear} и меньше ${minYear}`;
+  }
+
+  return null;
+};
+
+const validateEndYearError = (
+  value: string,
+  id: number,
+  workPlaces: WorkPlace[]
+): ValidationError => {
+  const isLastWorkPlace = workPlaces[workPlaces.length - 1].id === id;
+
+  if (value === '' && isLastWorkPlace) {
+    return null;
+  }
+
+  const year = Number(value);
+  const workPlace = workPlaces.find((wp) => wp.id === id);
+  const minYear = workPlace && workPlace.startYear;
+  const maxYear = new Date().getFullYear();
+
+  if (!minYear) {
+    return 'Пожалуйста, заполните сперва поле "Год начала работы"';
+  }
+
+  if (minYear && (year < minYear || year > maxYear)) {
+    return `Поле не может быть меньше ${minYear} и больше ${maxYear}`;
+  }
+
+  return null;
+};
+
+// const removeEmptyWorkPlaceError = (workPlaceError: WorkPlaceError) => {
+//   return ;
+// }
+
+interface WorkPlacesValidationError {
+  isWorkPlacesError: boolean;
+  workPlacesErrors: WorkPlaceError[];
+}
+
+const getValidatedWorkplacesErrors = (
+  workPlacesErrors: WorkPlaceError[],
+  id: number,
+  key: string,
+  error: ValidationError
+): WorkPlacesValidationError => {
+  const workPlaceError = workPlacesErrors.find((wpe) => wpe.id === id);
+
+  if (!workPlaceError && !error) {
+    return {
+      isWorkPlacesError: false,
+      workPlacesErrors,
+    };
+  }
+
+  if (!workPlaceError && error) {
+    return {
+      isWorkPlacesError: error !== null,
+      workPlacesErrors: [
+        ...workPlacesErrors,
+        {
+          id,
+          organization: null,
+          startYear: null,
+          endYear: null,
+          [key]: error,
+        },
+      ],
+    };
+  }
+
+  const newWorkPlacesErrors: WorkPlaceError[] = workPlacesErrors.map((wpe) => {
+    if (wpe.id === id) {
+      return {
+        ...wpe,
+        [key]: error,
+      };
+    }
+    return wpe;
+  });
+
+  return {
+    isWorkPlacesError: error !== null,
+    workPlacesErrors: newWorkPlacesErrors.filter((wpe) => {
+      return Object.entries(wpe).some(([key, value]) => {
+        return key === 'id' ? false : value !== null;
+      })
+    })
+  }
+};
+
+const validateWorkPlaces = (
+  validateInfo: WorkPlaceValidateInfo
+): WorkPlacesValidationError => {
+  const { name, value, formFields, workPlacesErrors, match } = validateInfo;
+
+  const id = Number(match[0]);
+
+  const key = name.slice(0, name.indexOf('['));
+
+  let error: ValidationError = null;
+  switch (key) {
+    case 'organization': {
+      if (value === '') {
+        error = 'Поле не может быть пустым';
+      }
+      break;
+    }
+    case 'startYear': {
+      error = validateStartYear(value, formFields.dateOfBirth);
+      break;
+    }
+    case 'endYear': {
+      error = validateEndYearError(value, id, formFields.workPlaces);
+      break;
+    }
+    default: {
+      console.log("Workplace with such id doesn't exist");
+      break;
+    }
+  }
+
+  return getValidatedWorkplacesErrors(workPlacesErrors, id, key, error);
+};
+
 export const validateField = (
   target: EventTarget & HTMLInputElement,
   formFields: FormFields,
@@ -90,112 +241,5 @@ export const validateField = (
     name: key,
     error,
     isError,
-  };
-};
-
-interface WorkPlaceValidateInfo {
-  name: string;
-  value: string;
-  formFields: FormFields;
-  workPlacesErrors: WorkPlaceError[];
-  match: RegExpMatchArray;
-}
-
-const validateWorkPlaces = (validateInfo: WorkPlaceValidateInfo) => {
-  const { name, value, formFields, workPlacesErrors, match } = validateInfo;
-
-  const id = Number(match[0]);
-  const workPlace = formFields.workPlaces.find((wp) => wp.id === id);
-  const key = name.slice(0, name.indexOf('['));
-
-  let error: string | null = null;
-  switch (key) {
-    case 'organization': {
-      if (value === '') {
-        error = 'Поле не может быть пустым';
-      }
-      break;
-    }
-    case 'startYear': {
-      if (formFields.dateOfBirth === null) {
-        error = 'Пожалуйста, заполните сперва поле "Дата рождения"';
-        break;
-      }
-
-      const yearOfBirth = new Date(formFields.dateOfBirth).getFullYear();
-      const year = Number(value);
-      const minYear = Number(yearOfBirth) + 18;
-      const maxYear = new Date().getFullYear();
-
-      if (year < minYear || year > maxYear) {
-        error = `Поле не может быть больше ${maxYear} и меньше ${minYear}`;
-      }
-
-      break;
-    }
-    case 'endYear': {
-      const workPlaces = formFields.workPlaces;
-      const isLastWorkPlace = workPlaces[workPlaces.length - 1].id === id;
-      if (value === '' && isLastWorkPlace) {
-        break;
-      }
-
-      const year = Number(value);
-      const minYear = workPlace && workPlace.startYear;
-      const maxYear = new Date().getFullYear();
-
-      if (!minYear) {
-        error = 'Пожалуйста, заполните сперва поле "Год начала работы"';
-        break;
-      }
-
-      if (minYear && (year < minYear || year > maxYear)) {
-        error = `Поле не может быть меньше ${minYear} и больше ${maxYear}`;
-      }
-
-      break;
-    }
-    default: {
-      console.log("Workplace with such id doesn't exist");
-      break;
-    }
-  }
-
-  const workPlaceError = workPlacesErrors.find((wpe) => wpe.id === id);
-
-  if (!workPlaceError && !error) {
-    return {
-      isWorkPlacesError: false,
-      workPlacesErrors,
-    };
-  }
-
-  if (workPlaceError) {
-    return {
-      isWorkPlacesError: error !== null,
-      workPlacesErrors: workPlacesErrors.map((wpe) => {
-        if (wpe.id === id) {
-          return {
-            ...wpe,
-            [key]: error,
-          };
-        }
-        return wpe;
-      }),
-    };
-  }
-
-  return {
-    isWorkPlacesError: error !== null,
-    workPlacesErrors: [
-      ...workPlacesErrors,
-      {
-        id,
-        organization: null,
-        startYear: null,
-        endYear: null,
-        [key]: error,
-      },
-    ],
   };
 };
