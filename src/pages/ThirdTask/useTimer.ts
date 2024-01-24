@@ -11,20 +11,29 @@ export function useTimer(time: Time): [number, boolean, () => void] {
     setTimeInSeconds(convertTimeInSeconds(time));
   }, [time]);
 
-  const toggleTimer = useCallback(() => {
-    isTimerRunning ? stopTimer() : startTimer();
-    setIsTimerRunning(!isTimerRunning);
-  }, [isTimerRunning]);
+  useEffect(() => {
+    if (!isTimerRunning) {
+      return;
+    }
 
-  const startTimer = () => {
+    const end = new Date(new Date().getTime() + timeInSeconds * 1000);
+
     timerId.current = setInterval(() => {
-      setTimeInSeconds((prevTimeInSeconds) => prevTimeInSeconds - 1);
+      const now = new Date();
+      const restTime = Math.round((end.getTime() - now.getTime()) / 1000);
+      setTimeInSeconds(restTime);
     }, 1000);
+
+    return clearTimer;
+  }, [isTimerRunning, timeInSeconds]);
+
+  const clearTimer = () => {
+    timerId.current && clearInterval(timerId.current);
   };
 
-  const stopTimer = () => {
-    timerId.current && clearInterval(timerId.current);
-    setTimeInSeconds(0);
+  const toggleTimer = () => {
+    isTimerRunning && clearTimer();
+    setIsTimerRunning(!isTimerRunning)
   };
 
   return [timeInSeconds, isTimerRunning, toggleTimer];
